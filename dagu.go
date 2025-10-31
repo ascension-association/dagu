@@ -100,10 +100,7 @@ func makeWritable(dir string) error {
 }
 
 func main() {
-	ipAddress, err := GetInterfaceIpv4Addr("eth0")
-	if err != nil {
-		return err
-	}
+	ipAddress := GetInterfaceIpv4Addr("eth0")
 	if err := syscall.Exec("/usr/local/bin/dagu", []string{"start-all"}, expandPath(append(os.Environ(), "DAGU_HOST=" + ipAddress))); err != nil {
 		log.Fatal(err)
 	}
