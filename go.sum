@@ -1,3 +1,5 @@
+github.com/alexellis/go-execute/v2 v2.2.1 h1:4Ye3jiCKQarstODOEmqDSRCqxMHLkC92Bhse743RdOI=
+github.com/alexellis/go-execute/v2 v2.2.1/go.mod h1:FMdRnUTiFAmYXcv23txrp3VYZfLo24nMpiIneWgKHTQ=
 github.com/gokrazy/gokrazy v0.0.0-20250916200752-e39b02bec165 h1:WfWsmxzNJZFSO8mE3pGbWzaUtcfNFjqp1BMrHAYuKg8=
 github.com/gokrazy/gokrazy v0.0.0-20250916200752-e39b02bec165/go.mod h1:0UPC4KuPLfHR3WMaqGrhT6Y90s6QkzI2g8bzLtpCneE=
 github.com/gokrazy/internal v0.0.0-20240629150625-a0f1dee26ef5 h1:XDklMxV0pE5jWiNaoo5TzvWfqdoiRRScmr4ZtDzE4Uw=

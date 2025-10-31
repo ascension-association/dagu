@@ -2,7 +2,10 @@ module github.com/ascension-association/dagu
 
 go 1.24
 
-require github.com/gokrazy/gokrazy v0.0.0-20250916200752-e39b02bec165
+require (
+	github.com/alexellis/go-execute/v2 v2.2.1
+	github.com/gokrazy/gokrazy v0.0.0-20250916200752-e39b02bec165
+)
 
 require (
 	github.com/gokrazy/internal v0.0.0-20240629150625-a0f1dee26ef5 // indirect
