@@ -102,14 +102,15 @@ func makeWritable(dir string) error {
 }
 
 func main() {
-	// wait for network
-	gokrazy.WaitFor("net-online")
+	// wait for local network
+	gokrazy.WaitFor("net-route")
 
 	// get local IP address
 	ipAddress, err := GetInterfaceIpv4Addr("eth0")
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("Local IP Address: " + ipAddress)
 
 	// run Dagu
 	if err := syscall.Exec("/usr/local/bin/dagu", []string{"start-all"}, expandPath(append(os.Environ(), "DAGU_HOST=" + ipAddress))); err != nil {
