@@ -11,7 +11,32 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"net"
 )
+
+// https://gist.github.com/schwarzeni/f25031a3123f895ff3785970921e962c
+func GetInterfaceIpv4Addr(interfaceName string) (addr string, err error) {
+    var (
+        ief      *net.Interface
+        addrs    []net.Addr
+        ipv4Addr net.IP
+    )
+    if ief, err = net.InterfaceByName(interfaceName); err != nil { // get interface
+        return
+    }
+    if addrs, err = ief.Addrs(); err != nil { // get addresses
+        return
+    }
+    for _, addr := range addrs { // get ipv4 address
+        if ipv4Addr = addr.(*net.IPNet).IP.To4(); ipv4Addr != nil {
+            break
+        }
+    }
+    if ipv4Addr == nil {
+        return "", errors.New(fmt.Sprintf("interface %s don't have an ipv4 address\n", interfaceName))
+    }
+    return ipv4Addr.String(), nil
+}
 
 func isMounted(mountpoint string) (bool, error) {
 	b, err := ioutil.ReadFile("/proc/self/mountinfo")
@@ -74,7 +99,11 @@ func makeWritable(dir string) error {
 }
 
 func main() {
-	if err := syscall.Exec("/usr/local/bin/dagu", os.Args, expandPath(append(os.Environ(), "start-all"))); err != nil {
+	ipAddress, err := GetInterfaceIpv4Addr("eth0")
+	if err != nil {
+		return err
+	}
+	if err := syscall.Exec("/usr/local/bin/dagu", []string{"start-all"}, expandPath(append(os.Environ(), "DAGU_HOST=" + ipAddress))); err != nil {
 		log.Fatal(err)
 	}
 }
