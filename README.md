@@ -12,3 +12,5 @@ Dagu is a lightweight workflow engine with a modern Web UI. Workflows are define
 gok add github.com/ascension-association/dagu
 gok update
 ```
+
+2. Load <device IP address>:8080 in your browser

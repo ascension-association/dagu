@@ -6,11 +6,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"context"
 	"errors"
 	"net"
+	"os"
+	"strings"
+	"syscall"
 
-	execute "github.com/alexellis/go-execute/v2"
 	"github.com/gokrazy/gokrazy"
 )
 
@@ -40,35 +41,6 @@ func GetInterfaceIpv4Addr(interfaceName string) (addr string, err error) {
     return ipv4Addr.String(), nil
 }
 
-func run(logging bool, exe string, args ...string) {
-	var cmd execute.ExecTask
-
-	if logging {
-		cmd = execute.ExecTask{
-			Command:     exe,
-			Args:        args,
-			StreamStdio: true,
-		}
-	} else {
-		cmd = execute.ExecTask{
-			Command:     exe,
-			Args:        args,
-			StreamStdio: false,
-			DisableStdioBuffer: true,
-		}
-	}
-
-	res, err := cmd.Execute(context.Background())
-
-	if err != nil {
-		fmt.Errorf("Error: %v", err)
-	}
-
-	if res.ExitCode != 0 {
-		fmt.Errorf("Error: %v", res.Stderr)
-	}
-}
-
 func main() {
 	// wait for local network
 	gokrazy.WaitFor("net-route")
@@ -81,11 +53,50 @@ func main() {
 	log.Println("Local IP Address: " + ipAddress)
 
 	// create mount point and use for Dagu storage
-	run(false, "/usr/local/bin/busybox", "mkdir", "-p", "/perm/dagu")
-	run(false, "export", "DAGU_HOME=/perm/dagu")
+	cmd := []string{"/usr/local/bin/busybox", "mkdir", "-p", "/perm/dagu"}
+	err := syscall.Exec(cmd[0], cmd, nil)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
 
 	// run Dagu
-	run(true, "/usr/local/bin/dagu", "server", "--host", ipAddress, "--port", port)
-	run(true, "/usr/local/bin/dagu", "scheduler")
-	run(true, "/usr/local/bin/dagu", "coordinator")
+	cmd = []string{"/usr/local/bin/dagu", "server", "--host", ipAddress, "--port", port}
+	err = syscall.Exec(cmd[0], cmd, expandPath(append(os.Environ(), "DAGU_HOME=/perm/dagu")))
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+	cmd = []string{"/usr/local/bin/dagu", "scheduler"}
+	err = syscall.Exec(cmd[0], cmd, expandPath(append(os.Environ(), "DAGU_HOME=/perm/dagu")))
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+	cmd = []string{"/usr/local/bin/dagu", "coordinator"}
+	err = syscall.Exec(cmd[0], cmd, expandPath(append(os.Environ(), "DAGU_HOME=/perm/dagu")))
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+}
+
+// expandPath returns env, but with PATH= modified or added such that both /user and /usr/local/bin are included.
+func expandPath(env []string) []string {
+	extra := "/user:/usr/local/bin"
+	found := false
+	for idx, val := range env {
+		parts := strings.Split(val, "=")
+		if len(parts) < 2 {
+			continue // malformed entry
+		}
+		key := parts[0]
+		if key != "PATH" {
+			continue
+		}
+		val := strings.Join(parts[1:], "=")
+		env[idx] = fmt.Sprintf("%s=%s:%s", key, extra, val)
+		found = true
+	}
+	if !found {
+		const busyboxDefaultPATH = "/usr/local/sbin:/sbin:/usr/sbin:/usr/local/bin:/bin:/usr/bin"
+		env = append(env, fmt.Sprintf("PATH=%s:%s", extra, busyboxDefaultPATH))
+	}
+	return env
 }
