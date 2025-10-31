@@ -13,6 +13,8 @@ import (
 	"syscall"
 	"errors"
 	"net"
+
+	"github.com/gokrazy/gokrazy"
 )
 
 // https://gist.github.com/schwarzeni/f25031a3123f895ff3785970921e962c
@@ -34,7 +36,7 @@ func GetInterfaceIpv4Addr(interfaceName string) (addr string, err error) {
         }
     }
     if ipv4Addr == nil {
-        return "", errors.New(fmt.Sprintf("interface %s don't have an ipv4 address\n", interfaceName))
+        return "", errors.New(fmt.Sprintf("interface %s does not have an ipv4 address\n", interfaceName))
     }
     return ipv4Addr.String(), nil
 }
@@ -100,10 +102,16 @@ func makeWritable(dir string) error {
 }
 
 func main() {
+	// wait for network
+	gokrazy.WaitFor("net-online")
+
+	// get local IP address
 	ipAddress, err := GetInterfaceIpv4Addr("eth0")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// run Dagu
 	if err := syscall.Exec("/usr/local/bin/dagu", []string{"start-all"}, expandPath(append(os.Environ(), "DAGU_HOST=" + ipAddress))); err != nil {
 		log.Fatal(err)
 	}
