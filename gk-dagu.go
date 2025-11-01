@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
+	"context"
 	"errors"
 	"net"
 	"io/ioutil"
 
+	execute "github.com/alexellis/go-execute/v2"
 	"github.com/gokrazy/gokrazy"
 )
 
@@ -41,6 +42,35 @@ func GetInterfaceIpv4Addr(interfaceName string) (addr string, err error) {
     return ipv4Addr.String(), nil
 }
 
+func run(logging bool, exe string, args ...string) {
+	var cmd execute.ExecTask
+
+	if logging {
+		cmd = execute.ExecTask{
+			Command:     exe,
+			Args:        args,
+			StreamStdio: true,
+		}
+	} else {
+		cmd = execute.ExecTask{
+			Command:     exe,
+			Args:        args,
+			StreamStdio: false,
+			DisableStdioBuffer: true,
+		}
+	}
+
+	res, err := cmd.Execute(context.Background())
+
+	if err != nil {
+		fmt.Errorf("Error: %v", err)
+	}
+
+	if res.ExitCode != 0 {
+		fmt.Errorf("Error: %v", res.Stderr)
+	}
+}
+
 func main() {
 	// wait for local network
 	gokrazy.WaitFor("net-route")
@@ -53,7 +83,8 @@ func main() {
 	log.Println("Local IP Address: " + ipAddress)
 
 	// create mount point and use for Dagu storage
-	//run(false, "/usr/local/bin/busybox", "mkdir", "-p", "/perm/dagu/.config/dagu")
+	run(false, "/usr/local/bin/busybox", "mkdir", "-p", "/perm/dagu")
+	run(false, "export", "DAGU_HOME=/perm/dagu")
 
 	// enable basic auth
 	config := "/perm/dagu/.config/dagu/config.yaml"
@@ -73,15 +104,7 @@ func main() {
 	}
 
 	// run Dagu
-	command := "DAGU_HOME=/perm/dagu DAGU_HOST=192.168.31.192 PATH=/bin:/usr/local/bin /usr/local/bin/dagu start-all"
-	cmd := exec.Command("/usr/local/bin/busybox", "sh", "-l", "-c", command)
-	src := os.Args[]
-	cmd.Dir = src
-	cmd.Env = cmd.Environ()
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	run(true, "/usr/local/bin/dagu", "server", "--host", ipAddress, "--port", port)
+	run(true, "/usr/local/bin/dagu", "scheduler")
+	run(true, "/usr/local/bin/dagu", "coordinator")
 }
