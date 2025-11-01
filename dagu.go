@@ -88,10 +88,7 @@ func main() {
 	// enable basic auth
 	config := "/perm/dagu/.config/dagu/config.yaml"
 	if _, err = os.Stat(config); os.IsNotExist(err) {
-		f, err = os.OpenFile(config, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
-		if err != nil {
-			fmt.Errorf("Error: %v", err)
-		}
+		f, _ := os.OpenFile(config, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 		defer f.Close()
 		_, err = f.WriteString("auth:\n  basic:\n    username: gokrazy\n    password: $(cat /etc/gokr-pw.txt)\n")
 		if err != nil {
