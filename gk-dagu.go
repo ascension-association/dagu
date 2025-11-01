@@ -87,6 +87,6 @@ func main() {
 	}
 
 	// run Dagu
-	command := "export PATH=/usr/local/sbin:/sbin:/usr/sbin:/usr/local/bin:/bin:/usr/bin ; export DAGU_HOME=/perm/dagu ; /usr/local/bin/busybox nohup /usr/local/bin/dagu server --config /perm/dagu/.config/dagu/config.yaml --host " + ipAddress + " --port " + port + " ; /usr/local/bin/busybox nohup /usr/local/bin/dagu scheduler ; /usr/local/bin/busybox nohup /usr/local/bin/dagu coordinator"
+	command := "export PATH=/usr/local/sbin:/sbin:/usr/sbin:/usr/local/bin:/bin:/usr/bin ; export DAGU_HOME=/perm/dagu ; /usr/local/bin/busybox nohup /usr/local/bin/dagu server --dagu-home /perm/dagu --config /perm/dagu/.config/dagu/config.yaml --host " + ipAddress + " --port " + port + " ; /usr/local/bin/busybox nohup /usr/local/bin/dagu scheduler --dagu-home /perm/dagu ; /usr/local/bin/busybox nohup /usr/local/bin/dagu coordinator --dagu-home /perm/dagu"
 	run(true, command)
 }
