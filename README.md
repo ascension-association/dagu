@@ -13,7 +13,7 @@ gok add github.com/ascension-association/dagu
 gok update
 ```
 
-2. Load <device IP address>:8080 in your browser
+2. Load `<device IP address>:8080` in your browser
 
 3. Click on `DAG Definitions` in the left-hand column
 
