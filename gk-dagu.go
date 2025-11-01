@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"errors"
 	"net"
 	"io/ioutil"
+	"context"
 
+	execute "github.com/alexellis/go-execute/v2"
 	"github.com/gokrazy/gokrazy"
 )
 
@@ -41,17 +42,32 @@ func GetInterfaceIpv4Addr(interfaceName string) (addr string, err error) {
     return ipv4Addr.String(), nil
 }
 
-func run(logging bool, command string) {
-	cmd := exec.Command("/usr/local/bin/busybox", "sh", "-c", command)
+func run(logging bool, exe string, args ...string) {
+	var cmd execute.ExecTask
 
 	if logging {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		cmd = execute.ExecTask{
+			Command:     exe,
+			Args:        args,
+			StreamStdio: true,
+		}
+	} else {
+		cmd = execute.ExecTask{
+			Command:     exe,
+			Args:        args,
+			StreamStdio: false,
+			DisableStdioBuffer: true,
+		}
 	}
 
-	err := cmd.Run()
+	res, err := cmd.Execute(context.Background())
+
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error: %v", err)
+	}
+
+	if res.ExitCode != 0 {
+		fmt.Errorf("Error: %v", res.Stderr)
 	}
 }
 
@@ -67,7 +83,7 @@ func main() {
 	log.Println("Local IP Address: " + ipAddress)
 
 	// create mount point and use for Dagu storage
-	run(false, "/usr/local/bin/busybox mkdir -p /perm/dagu/.config/dagu")
+	run(false, "/usr/local/bin/busybox", "mkdir", "-p", "/perm/dagu/.config/dagu")
 
 	// enable basic auth
 	config := "/perm/dagu/.config/dagu/config.yaml"
@@ -87,6 +103,29 @@ func main() {
 	}
 
 	// run Dagu
-	command := "export PATH=/usr/local/sbin:/sbin:/usr/sbin:/usr/local/bin:/bin:/usr/bin ; export DAGU_HOME=/perm/dagu ; /usr/local/bin/busybox nohup /usr/local/bin/dagu server --dagu-home /perm/dagu --config /perm/dagu/.config/dagu/config.yaml --host " + ipAddress + " --port " + port + " ; /usr/local/bin/busybox nohup /usr/local/bin/dagu scheduler --dagu-home /perm/dagu ; /usr/local/bin/busybox nohup /usr/local/bin/dagu coordinator --dagu-home /perm/dagu"
-	run(true, command)
+	/*
+	command := "DAGU_HOME=/perm/dagu DAGU_HOST=192.168.31.192 PATH=/bin:/usr/local/bin /usr/local/bin/dagu start-all"
+	cmd := exec.Command("/usr/local/bin/busybox", "sh", "-l", "-c", command)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	*/
+	run(false, "export", "DAGU_HOME=/perm/dagu")
+	run(false, "export", "DAGU_HOST=192.168.31.192")
+	run(false, "export", "PATH=/bin:/usr/local/bin")
+	ls := execute.ExecTask{
+		Command: "/usr/local/bin/dagu",
+		Args:    []string{"start-all"},
+		Shell:   true,
+	}
+	res, err := ls.Execute(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("stdout: %q, stderr: %q, exit-code: %d\n", res.Stdout, res.Stderr, res.ExitCode)
+
 }
