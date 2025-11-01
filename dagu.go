@@ -85,7 +85,6 @@ func main() {
 	run(false, "export", "DAGU_HOME=/perm/dagu")
 
 	// run Dagu
-	run(false, "export", "PATH=/user:/usr/local/sbin:/sbin:/usr/sbin:/usr/local/bin:/bin:/usr/bin")
 	run(true, "/usr/local/bin/dagu", "server", "--host", ipAddress, "--port", port)
 	run(true, "/usr/local/bin/dagu", "scheduler")
 	run(true, "/usr/local/bin/dagu", "coordinator")
