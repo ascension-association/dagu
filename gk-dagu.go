@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"context"
 	"errors"
 	"net"
 	"io/ioutil"
@@ -42,8 +41,8 @@ func GetInterfaceIpv4Addr(interfaceName string) (addr string, err error) {
     return ipv4Addr.String(), nil
 }
 
-func run(logging bool, exe string, args ...string) {
-	cmd := exec.Command(exe, args)
+func run(logging bool, command string) {
+	cmd := exec.Command("/usr/local/bin/busybox", "sh", "-c", command)
 
 	if logging {
 		cmd.Stdout = os.Stdout
@@ -68,8 +67,7 @@ func main() {
 	log.Println("Local IP Address: " + ipAddress)
 
 	// create mount point and use for Dagu storage
-	//run(false, "/usr/local/bin/busybox", "mkdir", "-p", "/perm/dagu")
-	//run(false, "export", "DAGU_HOME=/perm/dagu")
+	run(false, "/usr/local/bin/busybox mkdir -p /perm/dagu/.config/dagu")
 
 	// enable basic auth
 	config := "/perm/dagu/.config/dagu/config.yaml"
@@ -89,8 +87,6 @@ func main() {
 	}
 
 	// run Dagu
-	//run(true, "/usr/local/bin/dagu", "server", "--host", ipAddress, "--port", port)
-	//run(true, "/usr/local/bin/dagu", "scheduler")
-	//run(true, "/usr/local/bin/dagu", "coordinator")
-	run(true, "/usr/local/bin/busybox", "ls", "-al", "/perm")
+	command := "export PATH=/usr/local/sbin:/sbin:/usr/sbin:/usr/local/bin:/bin:/usr/bin ; export DAGU_HOME=/perm/dagu ; /usr/local/bin/busybox nohup /usr/local/bin/dagu server --config /perm/dagu/.config/dagu/config.yaml --host " + ipAddress + " --port " + port + " ; /usr/local/bin/busybox nohup /usr/local/bin/dagu scheduler ; /usr/local/bin/busybox nohup /usr/local/bin/dagu coordinator"
+	run(true, command)
 }
