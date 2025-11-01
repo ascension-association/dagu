@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"io/ioutil"
 
 	execute "github.com/alexellis/go-execute/v2"
 	"github.com/gokrazy/gokrazy"
@@ -88,11 +89,17 @@ func main() {
 	// enable basic auth
 	config := "/perm/dagu/.config/dagu/config.yaml"
 	if _, err = os.Stat(config); os.IsNotExist(err) {
+		pw, _ := ioutil.ReadFile("/etc/gokr-pw.txt")
 		f, _ := os.OpenFile(config, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 		defer f.Close()
-		_, err = f.WriteString("auth:\n  basic:\n    username: gokrazy\n    password: $(cat /etc/gokr-pw.txt)\n")
+		_, err = f.WriteString("auth:\n  basic:\n    username: gokrazy\n    password: ")
 		if err != nil {
 			fmt.Errorf("Error: %v", err)
+		} else {
+			_, err = f.WriteString(string(pw))
+			if err != nil {
+				fmt.Errorf("Error: %v", err)
+			}
 		}
 	}
 
