@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"context"
 	"errors"
 	"net"
@@ -83,6 +84,20 @@ func main() {
 	// create mount point and use for Dagu storage
 	run(false, "/usr/local/bin/busybox", "mkdir", "-p", "/perm/dagu")
 	run(false, "export", "DAGU_HOME=/perm/dagu")
+
+	// enable basic auth
+	config := "/perm/dagu/.config/dagu/config.yaml"
+	if _, err = os.Stat(config); os.IsNotExist(err) {
+		f, err = os.OpenFile(config, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Errorf("Error: %v", err)
+		}
+		defer f.Close()
+		_, err = f.WriteString("auth:\n  basic:\n    username: gokrazy\n    password: $(cat /etc/gokr-pw.txt)\n")
+		if err != nil {
+			fmt.Errorf("Error: %v", err)
+		}
+	}
 
 	// run Dagu
 	run(true, "/usr/local/bin/dagu", "server", "--host", ipAddress, "--port", port)

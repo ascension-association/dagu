@@ -9,11 +9,12 @@ Dagu is a lightweight workflow engine with a modern Web UI. Workflows are define
 1. Install Dagu onto the remote machine:
 
 ```
+gok add github.com/gokrazy/mkfs
 gok add github.com/ascension-association/dagu
 gok update
 ```
 
-2. Load `<device IP address>:8080` in your browser
+2. Load `<device IP address>:8080` in your browser and login with the same credentials as the gokrazy admin dashboard
 
 3. Click on `DAG Definitions` in the left-hand column
 
