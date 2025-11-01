@@ -24,15 +24,15 @@ gok update
 6. Scroll down to the `Definition` section and replace the contents with:
 
 ```
-env:
-  - PATH: /bin:/usr/local/bin
-
 steps:
-  - echo "It worked!"
+  - /usr/local/bin/busybox echo "It worked!"
 ```
 
 7. Click the `Save Changes` button
 
 8. Scroll to the top and click the play triangle button to run the test (click `Start` on the popup)
 
-9. The `cmd_1` box outline should turn green and the _Run Status_ section should say `succeeded` and the _Steps_ section should show the result
+9. The `cmd_1` box outline should turn green and the _Run Status_ section should say `succeeded` and in the _Steps_ section clicking on the `out` button in the _Error / Logs_ column should show the result
+
+10. Close the `out` popup, then scroll to the top and click the `Specs` tab, then click the `Delete` button
+
