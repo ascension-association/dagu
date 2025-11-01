@@ -10,7 +10,7 @@ Dagu is a lightweight workflow engine with a modern Web UI. Workflows are define
 
 ```
 gok add github.com/gokrazy/mkfs
-gok add github.com/ascension-association/dagu
+gok add github.com/ascension-association/gk-dagu
 gok update
 ```
 
