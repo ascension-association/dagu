@@ -1,4 +1,4 @@
-module github.com/ascension-association/dagu
+module github.com/ascension-association/gk-dagu
 
 go 1.24
 
